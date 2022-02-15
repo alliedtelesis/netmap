@@ -718,6 +718,14 @@ static unsigned int nmring_tg4(struct sk_buff *skb,
 		return NF_STOLEN;
 	}
 	else if (skb->len > mtu) {
+		/* Need destination to be able to fragment the packet */
+		if (!skb_dst(skb)) {
+			ipt_ipv4_route(priv->net, skb);
+			if (!skb_dst(skb)) {
+				IP_INC_STATS(priv->net, IPSTATS_MIB_FRAGFAILS);
+				return NF_DROP;
+			}
+		}
 		if ((iph->frag_off & htons(IP_DF)) == 0) {
 			ip_do_fragment(priv->net, NULL, skb, copy_pkt_to_queue);
 		}
