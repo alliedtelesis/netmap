@@ -1193,6 +1193,14 @@ netmap_send_up(struct ifnet *dst, struct mbq *q)
 }
 
 
+// TODO IPSOFF-134
+#define	ETHERTYPE_8023		0x0004	/* IEEE 802.3 packet */
+static short int
+nsh_header_to_ethertype (char *buffer)
+{
+	return ETHERTYPE_8023;
+}
+
 /*
  * Scan the buffers from hwcur to ring->head, and put a copy of those
  * marked NS_FORWARD (or all of them if forced) into a queue of mbufs.
@@ -1220,7 +1228,8 @@ netmap_grab_packets(struct netmap_kring *kring, struct mbq *q, int force)
 		slot->flags &= ~NS_FORWARD; // XXX needed ?
 		/* XXX TODO: adapt to the case of a multisegment packet */
 #ifdef ATL_CHANGE
-		m = m_devget(NMB(na, slot), slot->len, 0, na->ifp, NULL, slot->mark, slot->hash, slot->iif);
+		/* Might want to try avoiding the dev_get_by_index, but I don't think it's possible */
+		m = m_devget(NMB(na, slot), slot->len, 0, dev_get_by_index(dev_net(na->ifp), slot->iif), NULL, slot->mark, slot->hash, slot->iif);
 #else
 		m = m_devget(NMB(na, slot), slot->len, 0, na->ifp, NULL);
 #endif

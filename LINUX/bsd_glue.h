@@ -237,7 +237,10 @@ struct thread;
 	if (s) {						\
 		skb_put(s, _len);					\
 		skb_copy_to_linear_data_offset(s, _ofs, _buf, _len);	\
-		if (_dev)	\
+		/* TODO IPSOFF-134 */ \
+		if (_dev && strstr(((struct net_device*)_dev)->name, "tunnel"))         \
+			s->protocol = htons (0x0800);                 \
+		else if (_dev)                                    \
 			s->protocol = eth_type_trans(s, _dev);		\
 		s->mark = _mark;				\
 		skb_set_hash(s, _hash, PKT_HASH_TYPE_L4);	\
