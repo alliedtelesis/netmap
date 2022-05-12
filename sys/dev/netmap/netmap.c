@@ -1228,12 +1228,14 @@ netmap_grab_packets(struct netmap_kring *kring, struct mbq *q, int force)
 		slot->flags &= ~NS_FORWARD; // XXX needed ?
 		/* XXX TODO: adapt to the case of a multisegment packet */
 #ifdef ATL_CHANGE
-		/* Might want to try avoiding the dev_get_by_index, but I don't think it's possible */
-		m = m_devget(NMB(na, slot), slot->len, 0, dev_get_by_index(dev_net(na->ifp), slot->iif), NULL, slot->mark, slot->hash, slot->iif);
+		rcu_read_lock();
+		m = m_devget(NMB(na, slot), slot->len, 0,
+		             dev_get_by_index_rcu(dev_net(na->ifp), slot->iif),
+					 NULL, slot->mark, slot->hash, slot->iif);
+		rcu_read_unlock();
 #else
 		m = m_devget(NMB(na, slot), slot->len, 0, na->ifp, NULL);
 #endif
-
 		if (m == NULL)
 			break;
 		mbq_enqueue(q, m);
