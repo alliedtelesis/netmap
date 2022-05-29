@@ -1192,26 +1192,6 @@ netmap_send_up(struct ifnet *dst, struct mbq *q)
 	mbq_fini(q);
 }
 
-
-static struct net_device * local_if_lookup(struct net *net, int ifindex)
-{
-	static struct net_device **lookup = NULL;
-	static int max_index = 0;
-
-	if (ifindex > max_index)
-	{
-		lookup = krealloc(lookup, ifindex * 2 * sizeof(struct net_device*), GFP_ATOMIC | __GFP_ZERO);
-		max_index = (ifindex * 2) - 1;
-	}
-
-	if (lookup[ifindex])
-		return lookup[ifindex];
-
-	lookup[ifindex] = dev_get_by_index(net, ifindex);
-
-	return lookup[ifindex];
-}
-
 /*
  * Scan the buffers from hwcur to ring->head, and put a copy of those
  * marked NS_FORWARD (or all of them if forced) into a queue of mbufs.
@@ -1241,7 +1221,7 @@ netmap_grab_packets(struct netmap_kring *kring, struct mbq *q, int force)
 #ifdef ATL_CHANGE
 		rcu_read_lock();
 		m = m_devget(NMB(na, slot), slot->len, 0,
-		             local_if_lookup(dev_net(na->ifp), slot->iif),
+		             dev_get_by_index_rcu(dev_net(na->ifp), slot->iif),
 					 NULL, slot->mark, slot->hash, slot->iif,
 					 slot->protocol);
 		rcu_read_unlock();
