@@ -1207,7 +1207,7 @@ netmap_grab_packets(struct netmap_kring *kring, struct mbq *q, int force)
 	struct netmap_adapter *na = kring->na;
 
 	for (n = kring->nr_hwcur; n != head; n = nm_next(n, lim)) {
-		struct mbuf *m;
+		struct mbuf *m = NULL;
 		struct netmap_slot *slot = &kring->ring->slot[n];
 
 		if ((slot->flags & NS_FORWARD) == 0 && !force)
@@ -1220,10 +1220,13 @@ netmap_grab_packets(struct netmap_kring *kring, struct mbq *q, int force)
 		/* XXX TODO: adapt to the case of a multisegment packet */
 #ifdef ATL_CHANGE
 		rcu_read_lock();
-		m = m_devget(NMB(na, slot), slot->len, 0,
-		             dev_get_by_index_rcu(dev_net(na->ifp), slot->iif),
-					 NULL, slot->mark, slot->hash, slot->iif,
-					 slot->protocol);
+		struct net_device *dev = dev_get_by_index_rcu(dev_net(na->ifp), slot->iif);
+		if (dev)
+		{
+			m = m_devget(NMB(na, slot), slot->len, 0,
+			             dev, NULL, slot->mark, slot->hash, slot->iif,
+			             slot->protocol);
+		}
 		rcu_read_unlock();
 #else
 		m = m_devget(NMB(na, slot), slot->len, 0, na->ifp, NULL);
