@@ -878,6 +878,13 @@ netmap_krings_create(struct netmap_adapter *na, u_int tailroom)
 	 */
 	for_rx_tx(t) {
 		ndesc = nma_get_ndesc(na, t);
+#ifdef ATL_CHANGE
+		/**
+		* The ARX900S by default has more than 1024 TX slots.
+		* To mitigate this, use the number of RX slots for both TX/RX.
+		*/
+		ndesc = nma_get_ndesc(na, NR_RX);
+#endif
 		for (i = 0; i < n[t]; i++) {
 			kring = NMR(na, t)[i];
 			bzero(kring, sizeof(*kring));
