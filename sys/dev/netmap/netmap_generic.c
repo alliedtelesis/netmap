@@ -1106,6 +1106,18 @@ generic_netmap_attach(struct ifnet *ifp)
 		return EINVAL;
 	}
 
+#ifdef ATL_CHANGE
+	/**
+	* The Octeon TX2 by default has a minimum 4096 TX slots.
+	* To mitigate this, use the generic size.
+	*/
+	if (num_tx_desc > netmap_generic_ringsize)
+		num_tx_desc = netmap_generic_ringsize;
+
+	if (num_rx_desc > netmap_generic_ringsize)
+		num_rx_desc = netmap_generic_ringsize;
+#endif
+
 	gna = nm_os_malloc(sizeof(*gna));
 	if (gna == NULL) {
 		nm_prerr("no memory on attach, give up");
