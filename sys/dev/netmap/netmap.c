@@ -990,10 +990,12 @@ netmap_mem_restore(struct netmap_adapter *na)
 static void
 netmap_mem_drop(struct netmap_adapter *na)
 {
-	/* if the native allocator had been overrided on regif,
-	 * restore it now and drop the temporary one
-	 */
-	if (netmap_mem_deref(na->nm_mem, na)) {
+	netmap_mem_deref(na->nm_mem, na);
+
+	if (na->active_fds <= 0) {
+		/* if the native allocator had been overridden on regif,
+		 * restore it now and drop the temporary one
+		 */
 		netmap_mem_restore(na);
 	}
 }
@@ -1220,7 +1222,28 @@ netmap_grab_packets(struct netmap_kring *kring, struct mbq *q, int force)
 		slot->flags &= ~NS_FORWARD; // XXX needed ?
 		/* XXX TODO: adapt to the case of a multisegment packet */
 #ifdef ATL_CHANGE
-		m = m_devget(NMB(na, slot), slot->len, 0, na->ifp, NULL, slot->mark, slot->hash, slot->iif);
+		rcu_read_lock();
+		struct net_device *dev = dev_get_by_index_rcu(dev_net(na->ifp), slot->iif);
+		if (dev)
+		{
+			m = m_devget(NMB(na, slot), slot->len, 0,
+			             dev, NULL, slot->mark, slot->hash, slot->iif,
+			             slot->protocol);
+			if (na->ifp != dev)
+			{
+				struct pcpu_sw_netstats *tstats = this_cpu_ptr(dev->tstats);
+				u64_stats_update_begin(&tstats->syncp);
+				tstats->rx_packets++;
+				tstats->rx_bytes += slot->len;
+				u64_stats_update_end(&tstats->syncp);
+			}
+		}
+		else
+		{
+			kring->ring->drops++;
+			m = NULL;
+		}
+		rcu_read_unlock();
 #else
 		m = m_devget(NMB(na, slot), slot->len, 0, na->ifp, NULL);
 #endif

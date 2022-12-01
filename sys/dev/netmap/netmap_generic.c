@@ -841,8 +841,14 @@ generic_rx_handler(struct ifnet *ifp, struct mbuf *m)
 		 * support RX scatter-gather. */
 		nm_prlim(2, "Warning: driver pushed up big packet "
 				"(size=%d)", (int)MBUF_LEN(m));
+#ifdef ATL_CHANGE
+		kring->ring->drops++;
+#endif
 		m_freem(m);
 	} else if (unlikely(mbq_len(&kring->rx_queue) > 1024)) {
+#ifdef ATL_CHANGE
+		kring->ring->drops++;
+#endif
 		m_freem(m);
 	} else {
 		mbq_safe_enqueue(&kring->rx_queue, m);
@@ -1099,6 +1105,17 @@ generic_netmap_attach(struct ifnet *ifp)
 		nm_prerr("Device has no hw slots (tx %u, rx %u)", num_tx_desc, num_rx_desc);
 		return EINVAL;
 	}
+
+#ifdef ATL_CHANGE
+	/**
+	* For oversized rings, use the generic parameters.
+	*/
+	if (num_tx_desc > netmap_generic_ringsize)
+		num_tx_desc = netmap_generic_ringsize;
+
+	if (num_rx_desc > netmap_generic_ringsize)
+		num_rx_desc = netmap_generic_ringsize;
+#endif
 
 	gna = nm_os_malloc(sizeof(*gna));
 	if (gna == NULL) {
