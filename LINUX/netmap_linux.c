@@ -710,7 +710,11 @@ static unsigned int netmap_hook(void *priv,
 					const struct nf_hook_state *state)
 {
 	int ret = linux_generic_rx_handler_common(skb);
+#ifdef CONFIG_ARCH_QCOM
+	return likely(ret == NM_RX_HANDLER_STOLEN) ? NF_DROP : NF_ACCEPT;
+#else
 	return likely(ret == NM_RX_HANDLER_STOLEN) ? NF_STOLEN : NF_ACCEPT;
+#endif
 }
 #elif defined(NETMAP_LINUX_HAVE_RX_REGISTER)
 #ifdef NETMAP_LINUX_HAVE_RX_HANDLER_RESULT
