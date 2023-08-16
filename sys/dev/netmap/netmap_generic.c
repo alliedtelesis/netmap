@@ -830,6 +830,13 @@ generic_rx_handler(if_t ifp, struct mbuf *m)
 		return 0;
 	}
 
+#ifdef CONFIG_ARCH_QCOM
+	/* Take a copy of this skb - the Qualcomm driver frees it before we are done (even if
+	 * we say we stole it / are dropping it).
+	 */
+	m = skb_copy(m, GFP_ATOMIC);
+#endif
+
 	/* limit the size of the queue */
 	if (unlikely(!gna->rxsg && MBUF_LEN(m) > NETMAP_BUF_SIZE(na))) {
 		/* This may happen when GRO/LRO features are enabled for
