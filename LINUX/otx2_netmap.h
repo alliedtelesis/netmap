@@ -143,6 +143,7 @@ static int otx2_netmap_rxsync(struct netmap_kring *kring, int flags)
 			memcpy(addr, va, length);
 			ring->slot[nm_i].len = length;
 			ring->slot[nm_i].flags = 0;
+			ring->slot[nm_i].hash = cqe->hdr.flow_tag;
 
 			/* Advance and clear queue entries */
 			rx_cq->cq_head++;
