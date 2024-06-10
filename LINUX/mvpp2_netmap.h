@@ -240,6 +240,14 @@ static int mvpp2_netmap_rxsync(struct netmap_kring *kring, int flags)
 			rx_packets++;
 			rx_bytes += length;
 
+			if (length > na->rx_buf_maxsize) {
+				/* Skip packet since it's too large to fit in a single slot */
+				mvpp2_bm_pool_put(port, pool, dma_addr, phys_addr);
+				rx_received--;
+				rx_complete++;
+				continue;
+			}
+
 			dma_sync_single_for_cpu(((struct net_device *)ifp)->dev.parent, dma_addr, length + MVPP2_MH_SIZE, DMA_FROM_DEVICE);
 			prefetch(data + MVPP2_MH_SIZE + MVPP2_SKB_HEADROOM);
 
@@ -359,7 +367,12 @@ static void mvpp2_netmap_attach(struct mvpp2_port *port)
 	nm_prdis("NETMAP[%s] attach\n", port->dev->name);
 
 	bzero(&na, sizeof(na));
-	na.na_flags = NAF_OFFSETS;
+	/* HACK: Pretend to support NAF_MOREFRAG so that the MTU of the
+	 * interface can be set to values higher than rx_buf_maxsize when the
+	 * interface is in Netmap mode. Note that packets larger than this size
+	 * will be discarded however as we don't actually implement packet
+	 * fragmentation in the driver. */
+	na.na_flags = NAF_MOREFRAG | NAF_OFFSETS;
 	na.ifp = port->dev;
 	na.num_tx_desc = 256;
 	na.num_rx_desc = 256;
