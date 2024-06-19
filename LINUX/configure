@@ -1858,17 +1858,6 @@ EOF
     }
 EOF
 
-# check if old version of netif_rx exists that doesn't handle soft irqs
-  add_test 'have NETIF_RX_NO_SOFTIRQ' <<EOF
-    #include <linux/netdevice.h>
-
-    void * dummy(struct sk_buff *skb)
-    {
-     netif_rx_ni(skb);
-     return m;
-    }
-EOF
-
   #####################################################
   # checks related to drivers                         #
   #####################################################
