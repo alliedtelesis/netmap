@@ -1862,10 +1862,9 @@ EOF
   add_test 'have NETIF_RX_NO_SOFTIRQ' <<EOF
     #include <linux/netdevice.h>
 
-    void * dummy(struct sk_buff *skb)
+    void dummy(struct sk_buff *skb)
     {
      netif_rx_ni(skb);
-     return m;
     }
 EOF
 
