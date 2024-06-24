@@ -407,9 +407,7 @@ netmap_vale_vp_dtor(struct netmap_adapter *na)
 		NM_DETACH_NA(na->ifp);
 		if (vpna->autodelete) {
 			nm_prdis("releasing %s", na->ifp->if_xname);
-			NMG_UNLOCK();
 			nm_os_vi_detach(na->ifp);
-			NMG_LOCK();
 		}
 	}
 }
@@ -1376,8 +1374,6 @@ nm_vi_destroy(const char *name)
 		goto err;
 	}
 
-	NMG_UNLOCK();
-
 	if (netmap_verbose)
 		nm_prinf("destroying a persistent vale interface %s", ifp->if_xname);
 	/* Linux requires all the references are released
@@ -1386,11 +1382,12 @@ nm_vi_destroy(const char *name)
 	netmap_detach(ifp);
 	if_rele(ifp);
 	nm_os_vi_detach(ifp);
+	NMG_UNLOCK();
 	return 0;
 
 err:
-	NMG_UNLOCK();
 	if_rele(ifp);
+	NMG_UNLOCK();
 	return error;
 }
 
@@ -1486,8 +1483,8 @@ err_2:
 err_1:
 	if (nmd)
 		netmap_mem_put(nmd);
-	NMG_UNLOCK();
 	nm_os_vi_detach(ifp);
+	NMG_UNLOCK();
 
 	return error;
 }
