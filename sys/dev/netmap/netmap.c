@@ -3172,7 +3172,9 @@ netmap_ioctl(struct netmap_priv_d *priv, u_long cmd, caddr_t data,
 		}
 		mb(); /* make sure following reads are not from cache */
 
+		NMG_LOCK();
 		if (unlikely(priv->np_csb_atok_base)) {
+			NMG_UNLOCK();
 			nm_prerr("Invalid sync in CSB mode");
 			error = EBUSY;
 			break;
@@ -3229,6 +3231,7 @@ netmap_ioctl(struct netmap_priv_d *priv, u_long cmd, caddr_t data,
 		if (mbq_peek(&q)) {
 			netmap_send_up(na->ifp, &q);
 		}
+		NMG_UNLOCK();
 
 		break;
 	}
