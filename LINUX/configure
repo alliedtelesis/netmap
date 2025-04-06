@@ -1131,7 +1131,7 @@ EOF
 
 	void * dummy(struct net_device *dev)
 	{
-		return dev->ax25_ptr;
+		return dev->ml_priv;	// ATL_CHANGE
 	}
 EOF
 

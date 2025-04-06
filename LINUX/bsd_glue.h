@@ -316,11 +316,17 @@ struct thread;
  * in linux we have no spares so we overload ax25_ptr, and the detection
  * for netmap-capable is some magic in the area pointed by that.
  */
+#ifdef ATL_CHANGE
+#define ML_PRIV_TYPE 0x4e4d4150        /* unique value to use for priv type */
+#define if_setnetmapadapter(_ifp, _na) netdev_set_ml_priv((_ifp), (_na), ML_PRIV_TYPE)
+#define if_getnetmapadapter(_ifp)      ((struct netmap_adapter *)netdev_get_ml_priv((_ifp), ML_PRIV_TYPE))
+#else
 #define if_setnetmapadapter(_ifp, _na)	do { 				\
 	(_ifp)->ax25_ptr = _na;						\
 } while (0)
 #define if_getnetmapadapter(_ifp)	((struct netmap_adapter *)(_ifp)->ax25_ptr)
 
+#endif /* ATL_CHANGE */
 /* use the default NM_ATTACH_NA/NM_DETACH_NA defined in netmap_kernel.h */
 #else /* !NETMAP_LINUX_HAVE_AX25PTR */
 /*
