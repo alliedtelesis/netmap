@@ -1046,8 +1046,6 @@ static struct pernet_operations ipt_netmap_net_ops = {
 #else
 	.pre_exit	= ipt_netmap_net_exit,
 #endif
-	.id	= &ipt_netmap_net_id,
-	.size	= 0,
 };
 
 static int __init nmring_tg_init(void)
