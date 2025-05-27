@@ -133,7 +133,11 @@ static bool ipt_ipv4_route(struct net *net, struct sk_buff *skb)
 
 #ifdef CONFIG_XFRM
 	if (!(IPCB(skb)->flags & IPSKB_XFRM_TRANSFORMED) &&
+#ifdef NETMAP_LINUX_HAVE_XFRM_DECODE_SESSION_NET
+	    xfrm_decode_session(net, skb, flowi4_to_flowi(&fl4), AF_INET) == 0) {
+#else
 	    xfrm_decode_session(skb, flowi4_to_flowi(&fl4), AF_INET) == 0) {
+#endif
 		struct dst_entry *dst = skb_dst(skb);
 		skb_dst_set(skb, NULL);
 		dst = xfrm_lookup(net, dst, flowi4_to_flowi(&fl4), skb->sk, 0);
@@ -171,7 +175,11 @@ static bool ipt_ipv6_route(struct net *net, struct sk_buff *skb)
 
 #ifdef CONFIG_XFRM
 	if (!(IP6CB(skb)->flags & IP6SKB_XFRM_TRANSFORMED) &&
+#ifdef NETMAP_LINUX_HAVE_XFRM_DECODE_SESSION_NET
+	    xfrm_decode_session(net, skb, flowi6_to_flowi(&fl6), AF_INET6) == 0) {
+#else
 	    xfrm_decode_session(skb, flowi6_to_flowi(&fl6), AF_INET6) == 0) {
+#endif
 		skb_dst_set(skb, NULL);
 		dst = xfrm_lookup(net, dst, flowi6_to_flowi(&fl6), skb->sk, 0);
 		if (IS_ERR(dst))

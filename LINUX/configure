@@ -2035,6 +2035,16 @@ EOF
 	}
 EOF
 
+  # check for net passed to xfrm_decode_session
+  add_test 'have XFRM_DECODE_SESSION_NET' <<EOF
+	#include <net/xfrm.h>
+
+	int dummy(struct net_device *dev)
+	{
+		return xfrm_decode_session(NULL, NULL, NULL, 0);
+	}
+EOF
+
   #####################################################
   # checks related to drivers                         #
   #####################################################
