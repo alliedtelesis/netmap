@@ -493,7 +493,9 @@ nm_os_send_up(struct ifnet *ifp, struct mbuf *m, struct mbuf *prev)
 				m->dev = dp->slave;
 				m->pkt_type = PACKET_HOST;
 				m->protocol = eth_type_trans(m, m->dev);
+#ifdef skb_set_l2_port_ifindex
 				skb_set_l2_port_ifindex(m, m->dev->ifindex);
+#endif
 			}
 		}
 	}
