@@ -893,7 +893,9 @@ static unsigned int nmring_tg6(struct sk_buff *skb,
 		return NF_STOLEN;
 	}
 	else if ((skb->len > mtu)||
+#if LINUX_VERSION_CODE <= KERNEL_VERSION(6,7,0)
 			(skb_dst(skb) && dst_allfrag(skb_dst(skb))) ||
+#endif
 			(IP6CB(skb)->frag_max_size &&
 					skb->len > IP6CB(skb)->frag_max_size)) {
 		if (skb_dst(skb)) {
