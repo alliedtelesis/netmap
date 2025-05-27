@@ -29,6 +29,11 @@
 #endif
 #include "ipt_netmap.h"
 
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(6,9,0)
+#include <net/hotdata.h>
+#define netdev_max_backlog net_hotdata.max_backlog
+#endif
+
 MODULE_LICENSE("GPL");
 MODULE_AUTHOR("Sheena Mira-ato");
 MODULE_DESCRIPTION("A loadable kernel module that adds an NMRING target for iptables");
