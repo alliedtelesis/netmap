@@ -93,16 +93,14 @@ index d3f644cad57d..386664b767d7 100644
  	unregister_netdev(port->dev);
  	if (port->phylink)
  		phylink_destroy(port->phylink);
-@@ -7743,6 +7773,14 @@ static int mvpp2_probe(struct platform_device *pdev)
+@@ -7743,6 +7773,12 @@ static int mvpp2_probe(struct platform_device *pdev)
  	mvpp2_dbgfs_init(priv, pdev->name);
  
  	platform_set_drvdata(pdev, priv);
 +#ifdef CONFIG_NETMAP
-+	i = 0;
-+	fwnode_for_each_available_child_node(fwnode, port_fwnode) {
++	for (i = 0; i < priv->port_count; i++) {
 +		if (priv->port_list[i])
 +			mvpp2_netmap_attach(priv->port_list[i]);
-+		i++;
 +	}
 +#endif /* CONFIG_NETMAP */
  	return 0;
