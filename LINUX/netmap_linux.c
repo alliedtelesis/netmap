@@ -933,22 +933,22 @@ nm_os_catch_qdisc(struct netmap_generic_adapter *gna, int intercept)
 			(intercept ? generic_qdisc_ops.id : "pfifo");
 	/* Configure root qdisc.
 	 * sudo tc qdisc replace dev ifp->name root handle @root_handle: qdisc_name */
-	ret = tc_configure(ifp, qdisc_name, /*parent=*/TC_H_ROOT,
-				/*handle=*/root_handle << 16, limit);
-	if (ret) {
-		return -ret;
-	}
-	if (intercept && multiqueue) {
-		/* Configure per-queue qdisc. */
-		int i;
-		qdisc_name = (intercept ? generic_qdisc_ops.id : "pfifo");
-		limit = na->num_tx_desc;
-		for (i = 0; i < na->num_tx_rings; i++) {
-			tc_configure(ifp, qdisc_name,
-				/*parent=*/(root_handle << 16) | (i+1),
-				/*handle=*/0, limit);
-		}
-	}
+	// ret = tc_configure(ifp, qdisc_name, /*parent=*/TC_H_ROOT,
+	// 			/*handle=*/root_handle << 16, limit);
+	// if (ret) {
+	// 	return -ret;
+	// }
+	// if (intercept && multiqueue) {
+	// 	/* Configure per-queue qdisc. */
+	// 	int i;
+	// 	qdisc_name = (intercept ? generic_qdisc_ops.id : "pfifo");
+	// 	limit = na->num_tx_desc;
+	// 	for (i = 0; i < na->num_tx_rings; i++) {
+	// 		tc_configure(ifp, qdisc_name,
+	// 			/*parent=*/(root_handle << 16) | (i+1),
+	// 			/*handle=*/0, limit);
+	// 	}
+	// }
 	return 0;
 }
 
