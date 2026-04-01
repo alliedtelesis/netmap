@@ -232,9 +232,10 @@ generic_netmap_unregister(struct netmap_adapter *na)
 
 		/* Stop intercepting packets on the RX path. */
 		nm_os_catch_rx(gna, 0);
-
+	#ifndef ATL_CHANGE
 		/* Release packet steering control. */
 		nm_os_catch_tx(gna, 0);
+	#endif
 	}
 
 	netmap_krings_mode_commit(na, /*onoff=*/0);
@@ -379,12 +380,14 @@ generic_netmap_register(struct netmap_adapter *na, int enable)
 			goto free_tx_pools;
 		}
 
+	#ifndef ATL_CHANGE
 		/* Let netmap control the packet steering. */
 		error = nm_os_catch_tx(gna, 1);
 		if (error) {
 			nm_prerr("nm_os_catch_tx(1) failed (%d)", error);
 			goto catch_rx;
 		}
+	#endif
 
 		na->na_flags |= NAF_NETMAP_ON;
 
