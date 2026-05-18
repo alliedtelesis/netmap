@@ -172,7 +172,17 @@ static int mvpp2_netmap_rx_irq(struct mvpp2_queue_vector *qv)
 	/* RX */
 	cause_rx = cause_rx_tx & MVPP2_CAUSE_RXQ_OCCUP_DESC_ALL_MASK(port->priv->hw_version);
 	if (cause_rx && netmap_rx_irq(port->dev, thread, &dummy) == NM_IRQ_COMPLETED) {
+		struct mvpp2_nm_adapter *mna = (struct mvpp2_nm_adapter *)na;
+
 		nm_prdis("NETMAP[%s:%d] CAUSE_RXQ_OCCUP_DESC(0x%08x)\n", port->dev->name, thread, cause_rx);
+
+		/* After interface admin down/up irqs_enabled flag may get out of sync.
+		 * Interrupts must be enabled since we got here so make sure flag is set. */
+		if (!mna->irqs_enabled[thread])
+			nm_prdis("NETMAP[%s:%d] RX IRQ: stale irqs_enabled flag corrected\n",
+				 port->dev->name, thread);
+		mna->irqs_enabled[thread] = true;
+
 		mvpp2_netmap_qvec_interrupt_disable (na, thread);
 		// mvpp2_netmap_mask_rx_interrupts(qv);
 	}
