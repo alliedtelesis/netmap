@@ -387,6 +387,16 @@ generic_netmap_register(struct netmap_adapter *na, int enable)
 			nm_prerr("nm_os_catch_tx(1) failed (%d)", error);
 			goto catch_rx;
 		}
+	#else
+		/* The custom qdisc and generic_ndo_start_xmit are not
+		 * installed, so NM_MAGIC_PRIORITY_TX on mbufs is never reset
+		 * by the driver. MBUF_QUEUED() would therefore always return
+		 * true, preventing generic_netmap_tx_clean() from reclaiming
+		 * TX slots and eventually stalling all TX traffic. Use the
+		 * refcount-based clean path instead (txqdisc=0), which works
+		 * correctly without the custom ndo_start_xmit hook.
+		 */
+		gna->txqdisc = 0;
 	#endif
 
 		na->na_flags |= NAF_NETMAP_ON;
