@@ -39,16 +39,14 @@ vmxnet3_netmap_reg(struct netmap_adapter *na, int onoff)
 		nm_clear_native_flags(na);
 	}
 
-	err = vmxnet3_rq_create_all(adapter);
-	if (err)
-		goto out;
-
 	if (netif_running(adapter->netdev)) {
+		err = vmxnet3_rq_create_all(adapter);
+		if (err)
+			goto out;
+
 		err = vmxnet3_activate_dev(adapter);
 		if (err)
 			goto out;
-	} else {
-		vmxnet3_reset_dev(adapter);
 	}
 
 out:
@@ -58,7 +56,7 @@ out:
 		vmxnet3_force_close(adapter);
 	}
 
-	return 0;
+	return err;
 }
 
 static u_int
@@ -228,6 +226,9 @@ vmxnet3_netmap_rxsync(struct netmap_kring *kring, int flags)
 	struct vmxnet3_cmd_ring *cmd_ring = rq->rx_ring;
 
 	if (!netif_carrier_ok(ifp))
+		return 0;
+
+	if (!rq->comp_ring.base)
 		return 0;
 
 	if (head > lim)
