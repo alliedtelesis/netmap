@@ -16,15 +16,17 @@ index 0578864792b6..be17a491faff
  static void
  vmxnet3_unmap_tx_buf(struct vmxnet3_tx_buf_info *tbi,
  		     struct pci_dev *pdev)
-@@ -408,6 +413,13 @@ vmxnet3_tq_tx_complete(struct vmxnet3_tx_queue *tq,
+@@ -408,6 +413,15 @@ vmxnet3_tq_tx_complete(struct vmxnet3_tx_queue *tq,
  	xdp_frame_bulk_init(&bq);
  	rcu_read_lock();
  
 +#ifdef DEV_NETMAP
 +	struct net_device *netdev = adapter->netdev;
 +
-+	if (netmap_tx_irq(netdev, tq - adapter->tx_queue) != NM_IRQ_PASS)
++	if (netmap_tx_irq(netdev, tq - adapter->tx_queue) != NM_IRQ_PASS) {
++		rcu_read_unlock();
 +		return 0;
++	}
 +#endif
 +
  	gdesc = tq->comp_ring.base + tq->comp_ring.next2proc;
