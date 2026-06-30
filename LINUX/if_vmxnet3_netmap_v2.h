@@ -228,7 +228,7 @@ vmxnet3_netmap_rxsync(struct netmap_kring *kring, int flags)
 	if (!netif_carrier_ok(ifp))
 		return 0;
 
-	if (!rq->comp_ring.base)
+	if (test_bit(VMXNET3_STATE_BIT_QUIESCED, &adapter->state))
 		return 0;
 
 	if (head > lim)
