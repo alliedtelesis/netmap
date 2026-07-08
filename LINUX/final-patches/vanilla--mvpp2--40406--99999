@@ -127,7 +127,7 @@ index d3f644cad57d..386664b767d7 100644
  	unregister_netdev(port->dev);
  	if (port->phylink)
  		phylink_destroy(port->phylink);
-@@ -7773,6 +7824,12 @@ static int mvpp2_probe(struct platform_device *pdev)
+@@ -7743,6 +7773,14 @@ static int mvpp2_probe(struct platform_device *pdev)
  	mvpp2_dbgfs_init(priv, pdev->name);
  
  	platform_set_drvdata(pdev, priv);
